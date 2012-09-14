@@ -13,31 +13,31 @@ requires = [
     'pyramid_debugtoolbar',
     'ZODB3',
     'waitress',
-    ]
+]
 
-setup(name='push-hubsearch',
-      version='0.3',
-      description='push-hubsearch',
-      long_description=README + '\n\n' +  CHANGES,
-      classifiers=[
+setup(
+    name='push-hubsearch',
+    version='0.3',
+    description='push-hubsearch',
+    long_description=README + '\n\n' + CHANGES,
+    classifiers=[
         "Programming Language :: Python",
         "Framework :: Pylons",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
-        ],
-      author='',
-      author_email='',
-      url='',
-      keywords='web pylons pyramid',
-      packages=find_packages(),
-      include_package_data=True,
-      zip_safe=False,
-      install_requires = requires,
-      tests_require= requires,
-      test_suite="pushhubsearch",
-      entry_points = """\
-      [paste.app_factory]
-      main = pushhubsearch:main
-      """,
-      )
-
+    ],
+    author='',
+    author_email='',
+    url='',
+    keywords='web pylons pyramid',
+    packages=find_packages(),
+    include_package_data=True,
+    zip_safe=False,
+    install_requires=requires,
+    tests_require=requires,
+    test_suite="pushhubsearch",
+    entry_points="""\
+    [paste.app_factory]
+    main = pushhubsearch:main
+    """,
+)
