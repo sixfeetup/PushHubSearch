@@ -13,6 +13,9 @@ requires = [
     'pyramid_debugtoolbar',
     'ZODB3',
     'waitress',
+    'mysolr',
+    'repoze.folder',
+    'feedparser',
 ]
 
 setup(
