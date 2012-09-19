@@ -25,7 +25,6 @@ class UpdateItems(object):
         self.messages = []
         self.to_index = []
         solr_uri = request.registry.settings.get('push.solr_uri', None)
-        solr_uri = None
         if solr_uri is None:
             raise AttributeError(u'A push.solr_uri is required')
         self.solr = Solr(solr_uri)
