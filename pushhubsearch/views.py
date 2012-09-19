@@ -1,6 +1,6 @@
 from pyramid.httpexceptions import HTTPOk
 from pyramid.httpexceptions import HTTPBadRequest
-from feedparser import parse
+import feedparser
 from mysolr import Solr
 from .models import SharedItem
 
@@ -49,7 +49,7 @@ class UpdateItems(object):
         """Get a list of new items to create and existing items that
         need to be updated.
         """
-        shared_content = parse(self.request.body)
+        shared_content = feedparser.parse(self.request.body)
         for item in shared_content.entries:
             item_id = item['id']
             uid = item_id.replace('urn:syndication:', '')
@@ -93,11 +93,19 @@ class UpdateItems(object):
         cleaned = []
         for item in self.to_index:
             item_dict = item.__dict__
+            if 'Modified' in item_dict:
+                mod_date = item_dict['Modified'].isoformat()
+                # Make sure the date is acceptable to Solr, strip off
+                # the +00:00 and replace it with a Z
+                item_dict['Modified'] = "%sZ" % mod_date[:-6]
             item_dict['uid'] = item_dict['__name__']
             del item_dict['__name__']
             del item_dict['__parent__']
+            del item_dict['url']
             cleaned.append(item_dict)
-        self.solr.update(cleaned)
+        # XXX: Need to handle Solr errors here
+        response = self.solr.update(cleaned)
+        return response
 
 
 def delete_items(request):

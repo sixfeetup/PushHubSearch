@@ -1,6 +1,9 @@
+from datetime import datetime
 from persistent import Persistent
 from persistent.mapping import PersistentMapping
 from repoze.folder import Folder
+import dateutil.parser
+from dateutil.tz import tzutc
 
 
 class Root(PersistentMapping):
@@ -17,12 +20,14 @@ class SharedItem(Persistent):
     """An item shared to the CS Portal Pool
     """
 
-    def __init__(self, Title='', portal_type='', author='', Modified='',
+    def __init__(self, Title='', portal_type='', Creator='', Modified=None,
                  url='', Description='', Subject=[]):
         self.Title = Title
         self.portal_type = portal_type
         self.url = url
-        self.author = author
+        self.Creator = Creator
+        if Modified is None:
+            Modified = datetime.utcnow()
         self.Modified = Modified
         self.Description = Description
         self.Subject = Subject
@@ -35,12 +40,12 @@ class SharedItem(Persistent):
         if 'push_portal_type' in entry:
             self.portal_type = entry['push_portal_type']
         if 'author' in entry:
-            self.author = entry['author']
+            self.Creator = entry['author']
         if 'updated' in entry:
-            # XXX: should we store a python date?
-            self.Modified = entry['updated']
-        if 'url' in entry:
-            self.url = entry['url']
+            mod_date = dateutil.parser.parse(entry['updated'])
+            self.Modified = mod_date.astimezone(tzutc())
+        if 'link' in entry:
+            self.url = entry['link']
         if 'summary' in entry:
             self.Description = entry['summary']
         if 'tags' in entry:

@@ -16,6 +16,7 @@ requires = [
     'mysolr',
     'repoze.folder',
     'feedparser',
+    'python-dateutil',
 ]
 
 setup(
