@@ -24,8 +24,11 @@ class UpdateItems(object):
         self.update_count = 0
         self.messages = []
         self.to_index = []
-        # XXX: configure the solr address via paster
-        self.solr = Solr('http://localhost:55121/solr')
+        solr_uri = request.registry.settings.get('push.solr_uri', None)
+        solr_uri = None
+        if solr_uri is None:
+            raise AttributeError(u'A push.solr_uri is required')
+        self.solr = Solr(solr_uri)
         self.shared = context.shared
 
     def __call__(self):
