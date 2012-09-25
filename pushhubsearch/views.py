@@ -1,7 +1,6 @@
 from pyramid.httpexceptions import HTTPOk
 from pyramid.httpexceptions import HTTPBadRequest
 import feedparser
-from mysolr import Solr
 from .models import SharedItem
 
 # NOTE: the hub only supports atom at the moment
@@ -27,6 +26,8 @@ class UpdateItems(object):
         solr_uri = request.registry.settings.get('push.solr_uri', None)
         if solr_uri is None:
             raise AttributeError(u'A push.solr_uri is required')
+        # XXX: We are importing solr here to be able to mock it in the tests
+        from mysolr import Solr
         self.solr = Solr(solr_uri)
         self.shared = context.shared
 
@@ -54,7 +55,8 @@ class UpdateItems(object):
         shared_content = feedparser.parse(self.request.body)
         for item in shared_content.entries:
             item_id = item['id']
-            uid = item_id.replace('urn:syndication:', '')
+            # Get the uid, minus the urn:syndication bit
+            uid = item_id[16:]
             item['uid'] = uid
             if uid in self.shared:
                 self._update_item(item)
@@ -110,9 +112,38 @@ class UpdateItems(object):
         return response
 
 
-def delete_items(request):
+def delete_items(context, request):
     """Delete the given items from the index
-
-    TODO: Implement me
     """
-    return HTTPOk(body="Item removed")
+    # If the request isn't an RSS feed, bail out
+    if request.content_type not in ALLOWED_CONTENT:
+        body_msg = (
+            "The content-type of the request must be one of the "
+            "following: %s"
+        ) % ", ".join(ALLOWED_CONTENT)
+        return HTTPBadRequest(body=body_msg)
+    solr_uri = request.registry.settings.get('push.solr_uri', None)
+    if solr_uri is None:
+        raise AttributeError(u'A push.solr_uri is required')
+    # XXX: We are importing solr here to be able to mock it in the tests
+    from mysolr import Solr
+    solr = Solr(solr_uri)
+    shared_content = feedparser.parse(request.body)
+    missing = []
+    removed = 0
+    for item in shared_content.entries:
+        item_id = item['id']
+        # Get the uid, minus the urn:syndication bit
+        uid = item_id[16:]
+        if uid not in context.shared:
+            missing.append(uid)
+            solr.delete_by_key(uid)
+            continue
+        del context.shared[uid]
+        solr.delete_by_key(uid)
+        removed += 1
+    body_msg = "Removed %s items." % removed
+    if missing:
+        msg = " %s items could not be found for deletion: %s"
+        body_msg += msg % (len(missing), ', '.join(missing))
+    return HTTPOk(body=body_msg)
