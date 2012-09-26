@@ -39,7 +39,7 @@ setup(
     zip_safe=False,
     install_requires=requires,
     tests_require=requires,
-    extras_require={'tests': ['mock']},
+    extras_require={'test': ['mock']},
     test_suite="pushhubsearch",
     entry_points="""\
     [paste.app_factory]
