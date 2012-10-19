@@ -21,7 +21,7 @@ class SharedItem(Persistent):
     """
 
     def __init__(self, Title='', portal_type='', Creator='', Modified=None,
-                 url='', Description='', Subject=[]):
+                 url='', Description='', Subject=[], Category=None):
         self.Title = Title
         self.portal_type = portal_type
         self.url = url
@@ -31,6 +31,7 @@ class SharedItem(Persistent):
         self.Modified = Modified
         self.Description = Description
         self.Subject = Subject
+        self.Category = Category
 
     def update_from_entry(self, entry):
         """Update the item based on the feed entry
@@ -50,6 +51,8 @@ class SharedItem(Persistent):
             self.Description = entry['summary']
         if 'tags' in entry:
             self.Subject = [i['term'] for i in entry['tags']]
+        if 'category' in entry:
+            self.Category = [i['term'] for i in entry['category']]
 
 
 def appmaker(zodb_root):
