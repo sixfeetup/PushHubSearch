@@ -3,6 +3,7 @@ from pyramid_zodbconn import get_connection
 from .models import appmaker
 from .views import UpdateItems
 from .views import delete_items
+from .views import global_shared, global_selected, global_deleted
 
 
 def root_factory(request):
@@ -22,5 +23,14 @@ def main(global_config, **settings):
 
     config.add_route('delete', '/delete')
     config.add_view(delete_items, route_name='delete')
+
+    config.add_route('shared', '/global-shared.xml')
+    config.add_view(global_shared, route_name='shared')
+
+    config.add_route('selected', '/global-selected.xml')
+    config.add_view(global_selected, route_name='selected')
+
+    config.add_route('deleted', 'global-deletions.xml')
+    config.add_view(global_deleted, route_name='deleted')
 
     return config.make_wsgi_app()

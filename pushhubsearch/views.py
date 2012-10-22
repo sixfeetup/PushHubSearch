@@ -1,7 +1,10 @@
+import feedparser
 from pyramid.httpexceptions import HTTPOk
 from pyramid.httpexceptions import HTTPBadRequest
-import feedparser
+from pyramid.response import Response
+from pyramid.url import route_url
 from .models import SharedItem
+from webhelpers import feedgenerator
 
 # NOTE: the hub only supports atom at the moment
 ALLOWED_CONTENT = (
@@ -158,7 +161,61 @@ def delete_items(context, request):
     return HTTPOk(body=body_msg)
 
 
-def combine_feeds(context, request):
+def combine_entries(context, request, feed_name):
     """Combines all feeds of a given type (e.g. Shared, Selected)
     """
-    pass
+    shared = context.shared
+    results = [entry for entry in shared.values() if entry.feed_type == feed_name]
+    results.sort(key=lambda x: x.Modified)
+    return results
+
+
+def create_feed(entries, title, link, description):
+    """Combine the entries into an actual Atom feed."""
+    new_feed = feedgenerator.Atom1Feed(
+        title=title,
+        link=link,
+        description=description,
+    )
+    for entry in entries:
+        url = ''
+        if hasattr(entry, 'url'):
+            url = entry.url
+        new_feed.add_item(
+            entry.Title,
+            url,
+            entry.Description,
+            modified=entry.Modified,
+            tags=entry.Subject,
+            category=entry.Category,
+        )
+    return new_feed.writeString('utf-8')
+
+
+def global_shared(context, request):
+    entries = combine_entries(context, request, 'shared')
+    return Response(create_feed(entries,
+                       'All Shared Entries',
+                       route_url('shared', request),
+                       'A combined feed of all entries shared to the PuSH Hub.'
+    ))
+
+
+def global_selected(context, request):
+    entries = combine_entries(context, request, 'selected')
+    return Response(create_feed(entries,
+                       'All Selected Entries',
+                       route_url('selected', request),
+                       'A combined feed of all entries selected across '
+                       'the PuSH Hub.'
+    ))
+
+
+def global_deleted(context, request):
+    entries = combine_entries(context, request, 'deletions')
+    return Response(create_feed(entries,
+                       'All Deleted Entries',
+                       route_url('deleted', request),
+                       'A combined feed of all entries that were deleted '
+                       ' across the PuSH Hub.'
+    ))
