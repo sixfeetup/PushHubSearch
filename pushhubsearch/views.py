@@ -57,19 +57,12 @@ class UpdateItems(object):
         """
         shared_content = feedparser.parse(self.request.body)
 
-        # Get the feed's URL to attach to each item.
-        feed_url = ''
-        for link in shared_content.feed.links:
-            if link['rel'] != 'self':
-                continue
-            feed_url = link['href']
-
         for item in shared_content.entries:
             item_id = item['id']
             # Get the uid, minus the urn:syndication bit
             uid = item_id[16:]
             item['uid'] = uid
-            item['self_link'] = feed_url
+            item['self_link'] = shared_content.feed.link
             if uid in self.shared:
                 self._update_item(item)
             else:
@@ -110,7 +103,10 @@ class UpdateItems(object):
         for item in self.to_index:
             item_dict = item.__dict__
             if 'Modified' in item_dict:
-                mod_date = item_dict['Modified'].isoformat()
+                if hasattr(item_dict['Modified'], 'isoformat'):
+                    mod_date = item_dict['Modified'].isoformat()
+                else:
+                    mod_date = item_dict['Modified']
                 # Make sure the date is acceptable to Solr, strip off
                 # the +00:00 and replace it with a Z
                 item_dict['Modified'] = "%sZ" % mod_date[:-6]
