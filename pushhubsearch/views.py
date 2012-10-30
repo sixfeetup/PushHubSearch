@@ -1,3 +1,4 @@
+from datetime import datetime
 import feedparser
 from pyramid.httpexceptions import HTTPOk
 from pyramid.httpexceptions import HTTPBadRequest
@@ -208,7 +209,7 @@ def global_selected(context, request):
 
 
 def global_deleted(context, request):
-    entries = combine_entries(context, request, 'deletions')
+    entries = combine_entries(context, request, 'deleted')
     return Response(create_feed(entries,
                        'All Deleted Entries',
                        route_url('deleted', request),
