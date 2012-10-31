@@ -162,8 +162,11 @@ def combine_entries(context, request, feed_name):
     """Combines all feeds of a given type (e.g. Shared, Selected)
     """
     shared = context.shared
-    results = [entry for entry in shared.values() if entry.feed_type == feed_name]
-    results.sort(key=lambda x: x.Modified)
+    results = [entry for entry in shared.values()
+               if entry.feed_type == feed_name]
+    results.sort(key=lambda x: datetime.strptime(x.Modified, '%Y-%m-%dT%H:%M:%SZ'),
+                 reverse=True
+    )
     return results
 
 
@@ -182,7 +185,7 @@ def create_feed(entries, title, link, description):
             entry.Title,
             url,
             entry.Description,
-            modified=entry.Modified,
+            pubdate=datetime.strptime(x.Modified, '%Y-%m-%dT%H:%M:%SZ'),
             tags=entry.Subject,
             category=entry.Category,
         )
