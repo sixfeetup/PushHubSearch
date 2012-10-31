@@ -215,7 +215,7 @@ def create_feed(entries, title, link, description):
             entry.Title,
             url,
             entry.Description,
-            pubdate=datetime.strptime(x.Modified, '%Y-%m-%dT%H:%M:%SZ'),
+            pubdate=datetime.strptime(entry.Modified, '%Y-%m-%dT%H:%M:%SZ'),
             tags=entry.Subject,
             category=entry.Category,
         )
