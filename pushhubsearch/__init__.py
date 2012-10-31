@@ -3,6 +3,7 @@ from pyramid_zodbconn import get_connection
 from .models import appmaker
 from .views import UpdateItems
 from .views import delete_items
+from .views import update_deletions
 from .views import global_shared, global_selected, global_deleted
 
 
@@ -20,6 +21,9 @@ def main(global_config, **settings):
 
     config.add_route('update', '/update')
     config.add_view(UpdateItems, route_name='update')
+
+    config.add_route('update_deletions', '/update_deletions')
+    config.add_view(update_deletions, route_name='update_deletions')
 
     config.add_route('delete', '/delete')
     config.add_view(delete_items, route_name='delete')

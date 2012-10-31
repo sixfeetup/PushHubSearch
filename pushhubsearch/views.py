@@ -121,6 +121,36 @@ class UpdateItems(object):
         return response
 
 
+def update_deletions(context, request):
+    """Receive a UID from the request vars and remove the associated
+    object from the deleted feed.
+    """
+
+    uid = request.POST.get('uid')
+    if not uid:
+        return
+    solr_uri = request.registry.settings.get('push.solr_uri', None)
+    if solr_uri is None:
+        raise AttributeError(u'A push.solr_uri is required')
+    # XXX: We are importing solr here to be able to mock it in the tests
+    from mysolr import Solr
+    solr = Solr(solr_uri)
+    response = solr.search(**{'q': 'uid:"%s"' % (uid,)})
+
+    # XXX: should we update the document or remove it?
+    for document in response.documents:
+        document['feed_type'] = 'shared'
+
+    # update index with modified documents
+    solr.update(response.documents, commit=True)
+
+    # XXX: should we update the item or remove it?
+    if uid in context.shared:
+        context.shared['uid'].feed_type = 'shared'
+
+    return HTTPOk(body="Item no longer marked as deleted")
+
+
 def delete_items(context, request):
     """Delete the given items from the index
     """
