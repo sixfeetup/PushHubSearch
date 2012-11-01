@@ -144,9 +144,8 @@ def update_deletions(context, request):
     # update index with modified documents
     solr.update(response.documents, commit=True)
 
-    # XXX: should we update the item or remove it?
     if uid in context.shared:
-        context.shared['uid'].feed_type = 'shared'
+        context.shared[uid].feed_type = 'shared'
 
     return HTTPOk(body="Item no longer marked as deleted")
 
