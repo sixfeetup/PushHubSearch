@@ -1,4 +1,5 @@
 from datetime import datetime
+import copy
 import feedparser
 from pyramid.httpexceptions import HTTPOk
 from pyramid.httpexceptions import HTTPBadRequest
@@ -63,7 +64,8 @@ class UpdateItems(object):
             # Get the uid, minus the urn:syndication bit
             uid = item_id[16:]
             item['uid'] = uid
-            item['self_link'] = shared_content.feed.link
+            item['link'] = item.link
+            item['feed_link'] = shared_content.feed.link
             if uid in self.shared:
                 self._update_item(item)
             else:
@@ -102,7 +104,7 @@ class UpdateItems(object):
         """
         cleaned = []
         for item in self.to_index:
-            item_dict = item.__dict__
+            item_dict = copy.deepcopy(item.__dict__)
             if 'Modified' in item_dict:
                 if hasattr(item_dict['Modified'], 'isoformat'):
                     mod_date = item_dict['Modified'].isoformat()
@@ -193,9 +195,7 @@ def combine_entries(context, request, feed_name):
     shared = context.shared
     results = [entry for entry in shared.values()
                if entry.feed_type == feed_name]
-    results.sort(key=lambda x: datetime.strptime(x.Modified, '%Y-%m-%dT%H:%M:%SZ'),
-                 reverse=True
-    )
+    results.sort(key=lambda x: x.Modified, reverse=True)
     return results
 
 
@@ -208,13 +208,13 @@ def create_feed(entries, title, link, description):
     )
     for entry in entries:
         url = ''
-        if hasattr(entry, 'url'):
+ )       if hasattr(entry, 'url'):
             url = entry.url
         new_feed.add_item(
             entry.Title,
             url,
             entry.Description,
-            pubdate=datetime.strptime(entry.Modified, '%Y-%m-%dT%H:%M:%SZ'),
+            pubdate=entry.Modified,
             tags=entry.Subject,
             category=entry.Category,
         )

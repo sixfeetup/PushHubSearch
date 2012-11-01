@@ -57,8 +57,8 @@ class SharedItem(Persistent):
         if 'category' in entry:
             self.Category = [i['term'] for i in entry['tags']
                             if i['label'] == 'Site Title'][0]
-        if 'self_link' in entry:
-            url = entry['self_link']
+        if 'feed_link' in entry:
+            url = entry['feed_link']
             for feed_type in ('shared', 'selected', 'deleted'):
                 if feed_type in url:
                     self.feed_type = feed_type
