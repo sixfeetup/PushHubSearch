@@ -207,12 +207,9 @@ def create_feed(entries, title, link, description):
         description=description,
     )
     for entry in entries:
-        url = ''
- )       if hasattr(entry, 'url'):
-            url = entry.url
         new_feed.add_item(
             entry.Title,
-            url,
+            entry.url,
             entry.Description,
             pubdate=entry.Modified,
             tags=entry.Subject,
