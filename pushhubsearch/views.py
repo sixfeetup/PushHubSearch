@@ -93,7 +93,6 @@ class UpdateItems(object):
         #      the `add` method on the folder not setting them?
         obj.__name__ = entry['uid']
         obj.__parent__ = self.shared
-        del entry['uid']
         obj.update_from_entry(entry)
         self.to_index.append(obj)
         self.update_count += 1
