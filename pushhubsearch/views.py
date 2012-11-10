@@ -58,7 +58,6 @@ class UpdateItems(object):
         need to be updated.
         """
         shared_content = feedparser.parse(self.request.body)
-
         for item in shared_content.entries:
             item_id = item['id']
             # Get the uid, minus the urn:syndication bit
@@ -113,6 +112,7 @@ class UpdateItems(object):
                 # the +00:00 and replace it with a Z
                 item_dict['Modified'] = "%sZ" % mod_date[:-6]
             item_dict['uid'] = item_dict['__name__']
+            item_dict['feed_type'] = 'shared'
             del item_dict['__name__']
             del item_dict['__parent__']
             del item_dict['url']
@@ -211,6 +211,7 @@ def create_feed(entries, title, link, description):
             entry.url,
             entry.Description,
             pubdate=entry.Modified,
+            unique_id=entry.__name__,
             tags=entry.Subject,
             category=entry.Category,
         )

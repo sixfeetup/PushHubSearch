@@ -52,11 +52,15 @@ class SharedItem(Persistent):
         if 'summary' in entry:
             self.Description = entry['summary']
         if 'tags' in entry:
-            self.Subject = [i['term'] for i in entry['tags']
-                            if i['label'] != 'Site Title']
+            self.Subject = [
+                i['term'] for i in entry['tags']
+                if i.get('label', '') != 'Site Title']
         if 'category' in entry:
-            self.Category = [i['term'] for i in entry['tags']
-                            if i['label'] == 'Site Title'][0]
+            cats = [
+                i['term'] for i in entry['tags']
+                if i.get('label', '') == 'Site Title']
+            if cats:
+                self.Category = cats[0]
         if 'feed_link' in entry:
             url = entry['feed_link']
             for feed_type in ('shared', 'selected', 'deleted'):
