@@ -146,7 +146,7 @@ def update_deletions(context, request):
     solr.update(response.documents, commit=True)
 
     if uid in context.shared:
-        context.shared[uid].feed_type = 'shared'
+        context.shared[uid].feed_type = ['shared',]
 
     return HTTPOk(body="Item no longer marked as deleted")
 
@@ -193,7 +193,7 @@ def combine_entries(context, request, feed_name):
     """
     shared = context.shared
     results = [entry for entry in shared.values()
-               if entry.feed_type == feed_name]
+               if feed_name in entry.feed_type]
     results.sort(key=lambda x: x.Modified, reverse=True)
     return results
 

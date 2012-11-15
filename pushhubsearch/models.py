@@ -65,7 +65,11 @@ class SharedItem(Persistent):
             url = entry['feed_link']
             for feed_type in ('shared', 'selected', 'deleted'):
                 if feed_type in url:
-                    self.feed_type = feed_type
+                    if self.feed_type and feed_type != 'deleted':
+                        if not feed_type in self.feed_type:
+                            self.feed_type.append(feed_type)
+                    else:
+                        self.feed_type = [feed_type, ]
 
 
 def appmaker(zodb_root):
