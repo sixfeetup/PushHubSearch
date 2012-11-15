@@ -112,7 +112,6 @@ class UpdateItems(object):
                 # the +00:00 and replace it with a Z
                 item_dict['Modified'] = "%sZ" % mod_date[:-6]
             item_dict['uid'] = item_dict['__name__']
-            item_dict['feed_type'] = 'shared'
             del item_dict['__name__']
             del item_dict['__parent__']
             cleaned.append(item_dict)
@@ -139,7 +138,7 @@ def update_deletions(context, request):
 
     # XXX: should we update the document or remove it?
     for document in response.documents:
-        document['feed_type'] = 'shared'
+        document['feed_type'] = ['shared',]
 
     # update index with modified documents
     solr.update(response.documents, commit=True)
