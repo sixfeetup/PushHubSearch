@@ -115,7 +115,6 @@ class UpdateItems(object):
             item_dict['feed_type'] = 'shared'
             del item_dict['__name__']
             del item_dict['__parent__']
-            del item_dict['url']
             cleaned.append(item_dict)
         # XXX: Need to handle Solr errors here
         response = self.solr.update(cleaned)
