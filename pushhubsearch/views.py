@@ -59,9 +59,10 @@ class UpdateItems(object):
         """
         shared_content = feedparser.parse(self.request.body)
         for item in shared_content.entries:
-            item_id = item['id']
+            uid = item['id']
             # Get the uid, minus the urn:syndication bit
-            uid = item_id[16:]
+            if len(uid) > 36:
+                uid = uid[16:]
             item['uid'] = uid
             item['link'] = item.link
             item['feed_link'] = shared_content.feed.link
@@ -169,9 +170,10 @@ def delete_items(context, request):
     missing = []
     removed = 0
     for item in shared_content.entries:
-        item_id = item['id']
+        uid = item['id']
         # Get the uid, minus the urn:syndication bit
-        uid = item_id[16:]
+        if len(uid) > 36:
+            uid = uid[16:]
         if uid not in context.shared:
             missing.append(uid)
             solr.delete_by_key(uid)
@@ -186,11 +188,19 @@ def delete_items(context, request):
     return HTTPOk(body=body_msg)
 
 
+def not_deleted(feed_name, types):
+    return feed_name in types and 'deleted' not in types
+
+
 def combine_entries(context, request, feed_name):
     """Combines all feeds of a given type (e.g. Shared, Selected)
     """
     shared = context.shared
-    results = [entry for entry in shared.values()
+    if feed_name != 'deleted':
+        results = [entry for entry in shared.values()
+               if not_deleted(feed_name, entry.feed_type)]
+    else:
+        results = [entry for entry in shared.values()
                if feed_name in entry.feed_type]
     results.sort(key=lambda x: x.Modified, reverse=True)
     return results
