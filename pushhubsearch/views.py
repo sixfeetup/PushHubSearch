@@ -6,7 +6,7 @@ from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.response import Response
 from pyramid.url import route_url
 from .models import SharedItem
-from webhelpers import feedgenerator
+from .feedgen import Atom1Feed
 
 # NOTE: the hub only supports atom at the moment
 ALLOWED_CONTENT = (
@@ -208,7 +208,7 @@ def combine_entries(context, request, feed_name):
 
 def create_feed(entries, title, link, description):
     """Combine the entries into an actual Atom feed."""
-    new_feed = feedgenerator.Atom1Feed(
+    new_feed = Atom1Feed(
         title=title,
         link=link,
         description=description,
@@ -220,7 +220,7 @@ def create_feed(entries, title, link, description):
             entry.Description,
             pubdate=entry.Modified,
             unique_id=entry.__name__,
-            tags=entry.Subject,
+            categories=entry.Subject,
             category=entry.Category,
         )
     return new_feed.writeString('utf-8')
