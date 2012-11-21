@@ -68,6 +68,20 @@ class SharedItem(Persistent):
                     if self.feed_type and feed_type != 'deleted':
                         if not feed_type in self.feed_type:
                             self.feed_type.append(feed_type)
+                    # If an item is deleted from the selection feed,
+                    # we still need to keep the shared string in
+                    # the feed_type attribute.
+                    # If the item was unfeatured, then the feed_type
+                    # attribute needs to get set to ['deleted']
+                    elif self.feed_type and feed_type == 'deleted':
+                        deletion_type = entry['push_deletion_type']
+                        if deletion_type == 'selected':
+                            if 'selected' in self.feed_type:
+                                self.feed_type.remove('selected')
+                            if 'deleted' not in self.feed_type:
+                                self.feed_type.append('deleted')
+                        else:
+                            self.feed_type = [feed_type, ]
                     else:
                         self.feed_type = [feed_type, ]
         if 'push_deletion_type' in entry:

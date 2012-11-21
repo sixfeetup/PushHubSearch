@@ -196,11 +196,7 @@ def combine_entries(context, request, feed_name):
     """Combines all feeds of a given type (e.g. Shared, Selected)
     """
     shared = context.shared
-    if feed_name != 'deleted':
-        results = [entry for entry in shared.values()
-               if not_deleted(feed_name, entry.feed_type)]
-    else:
-        results = [entry for entry in shared.values()
+    results = [entry for entry in shared.values()
                if feed_name in entry.feed_type]
     results.sort(key=lambda x: x.Modified, reverse=True)
     return results
