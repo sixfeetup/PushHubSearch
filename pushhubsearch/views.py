@@ -222,6 +222,7 @@ def create_feed(entries, title, link, description):
             unique_id=entry.__name__,
             categories=entry.Subject,
             category=entry.Category,
+            portal_type=entry.portal_type
         )
     return new_feed.writeString('utf-8')
 
