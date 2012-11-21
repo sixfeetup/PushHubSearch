@@ -24,3 +24,10 @@ class Atom1Feed(feedgenerator.Atom1Feed):
 
         # Add portal_type tag under the push namespace
         handler.addQuickElement("push:portal_type", item['portal_type'])
+
+        if 'deletion_type' in item:
+            # Add portal_type tag under the push namespace
+            handler.addQuickElement(
+                "push:deletion_type",
+                item['deletion_type']
+            )

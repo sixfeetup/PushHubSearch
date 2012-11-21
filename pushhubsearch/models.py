@@ -70,6 +70,8 @@ class SharedItem(Persistent):
                             self.feed_type.append(feed_type)
                     else:
                         self.feed_type = [feed_type, ]
+        if 'push_deletion_type' in entry:
+            self.deletion_type = entry['push_deletion_type']
 
 
 def appmaker(zodb_root):

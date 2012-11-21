@@ -214,15 +214,20 @@ def create_feed(entries, title, link, description):
         description=description,
     )
     for entry in entries:
-        new_feed.add_item(
-            entry.Title,
-            entry.url,
-            entry.Description,
+        data = dict(
             pubdate=entry.Modified,
             unique_id=entry.__name__,
             categories=entry.Subject,
             category=entry.Category,
             portal_type=entry.portal_type
+        )
+        if hasattr(entry, 'deletion_type'):
+            data['deletion_type'] = entry.deletion_type
+        new_feed.add_item(
+            entry.Title,
+            entry.url,
+            entry.Description,
+            **data
         )
     return new_feed.writeString('utf-8')
 
