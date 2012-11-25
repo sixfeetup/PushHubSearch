@@ -7,6 +7,7 @@ from pyramid.response import Response
 from pyramid.url import route_url
 from .models import SharedItem
 from .feedgen import Atom1Feed
+from .utils import normalize_uid
 
 # NOTE: the hub only supports atom at the moment
 ALLOWED_CONTENT = (
@@ -61,9 +62,7 @@ class UpdateItems(object):
         for item in shared_content.entries:
             uid = item['id']
             # Get the uid, minus the urn:syndication bit
-            if len(uid) > 36:
-                uid = uid[16:]
-            item['uid'] = uid
+            item['uid'] = normalize_uid(uid)
             item['link'] = item.link
             item['feed_link'] = shared_content.feed.link
             if uid in self.shared:
@@ -171,9 +170,7 @@ def delete_items(context, request):
     removed = 0
     for item in shared_content.entries:
         uid = item['id']
-        # Get the uid, minus the urn:syndication bit
-        if len(uid) > 36:
-            uid = uid[16:]
+        uid = normalize_uid(uid)
         if uid not in context.shared:
             missing.append(uid)
             solr.delete_by_key(uid)
