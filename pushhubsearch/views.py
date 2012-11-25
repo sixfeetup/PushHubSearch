@@ -60,9 +60,10 @@ class UpdateItems(object):
         """
         shared_content = feedparser.parse(self.request.body)
         for item in shared_content.entries:
-            uid = item['id']
+            feed_uid = item['id']
             # Get the uid, minus the urn:syndication bit
-            item['uid'] = normalize_uid(uid)
+            uid = normalize_uid(feed_uid)
+            item['uid'] = uid
             item['link'] = item.link
             item['feed_link'] = shared_content.feed.link
             if uid in self.shared:
