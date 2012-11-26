@@ -8,6 +8,10 @@ from pyramid.url import route_url
 from .models import SharedItem
 from .feedgen import Atom1Feed
 from .utils import normalize_uid
+from .utils import remove_deleted_status
+
+import logging
+logger = logging.getLogger(__name__)
 
 # NOTE: the hub only supports atom at the moment
 ALLOWED_CONTENT = (
@@ -38,7 +42,7 @@ class UpdateItems(object):
         self.shared = context.shared
 
     def __call__(self):
-        # If the request isn't an RSS feed, bail out
+        #  If the request isn't an RSS feed, bail out
         if self.request.content_type not in ALLOWED_CONTENT:
             body_msg = (
                 "The content-type of the request must be one of the "
@@ -60,10 +64,10 @@ class UpdateItems(object):
         """
         shared_content = feedparser.parse(self.request.body)
         for item in shared_content.entries:
-            feed_uid = item['id']
+            uid = item['id']
             # Get the uid, minus the urn:syndication bit
-            uid = normalize_uid(feed_uid)
-            item['uid'] = uid
+            item['uid'] = uid = normalize_uid(uid)
+            logger.info('Processing item %s' % uid)
             item['link'] = item.link
             item['feed_link'] = shared_content.feed.link
             if uid in self.shared:
@@ -93,6 +97,11 @@ class UpdateItems(object):
         #      the `add` method on the folder not setting them?
         obj.__name__ = entry['uid']
         obj.__parent__ = self.shared
+        if (('selected' in entry['feed_link'] or 'shared' in entry['feed_link'])
+                and hasattr(obj, 'deletion_type')):
+            remove_deleted_status(entry['uid'],
+                                  self.shared,
+                                  self.solr)
         obj.update_from_entry(entry)
         self.to_index.append(obj)
         self.update_count += 1
@@ -125,27 +134,16 @@ def update_deletions(context, request):
     """Receive a UID from the request vars and remove the associated
     object from the deleted feed.
     """
-
     uid = request.POST.get('uid')
     if not uid:
         return
     solr_uri = request.registry.settings.get('push.solr_uri', None)
     if solr_uri is None:
         raise AttributeError(u'A push.solr_uri is required')
-    # XXX: We are importing solr here to be able to mock it in the tests
     from mysolr import Solr
     solr = Solr(solr_uri)
-    response = solr.search(**{'q': 'uid:"%s"' % (uid,)})
 
-    # XXX: should we update the document or remove it?
-    for document in response.documents:
-        document['feed_type'] = ['shared',]
-
-    # update index with modified documents
-    solr.update(response.documents, commit=True)
-
-    if uid in context.shared:
-        context.shared[uid].feed_type = ['shared',]
+    remove_deleted_status(uid, context.shared, solr)
 
     return HTTPOk(body="Item no longer marked as deleted")
 

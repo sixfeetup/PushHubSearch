@@ -33,14 +33,37 @@ XML_ENTRY = """\
   </entry>"""
 
 
+class FakeResponse(object):
+    def __init__(self, documents=None):
+        self.documents = documents
+
 class FakeSolr(object):
 
     def __init__(self, solr_uri=None):
         self.solr_uri = solr_uri
         self.deleted = []
+        self.catalog = {}
 
     def delete_by_key(self, key):
         self.deleted.append(key)
+
+    def search(self, **kwargs):
+        query = kwargs.get('q', None)
+        if not query:
+            return
+        else:
+            uid = query.split(':')[1]
+            uid = uid.replace('"', '')
+            docs = self.catalog.get(uid)
+            new_docs = []
+            for doc in docs:
+                new_docs.append({'feed_type': doc.feed_type,
+                                 'uid': uid
+                                })
+            return FakeResponse(documents=new_docs)
+
+    def update(self, documents, **kwargs):
+        pass
 
 
 class TestDeletion(TestCase):

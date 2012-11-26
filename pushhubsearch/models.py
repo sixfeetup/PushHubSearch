@@ -81,7 +81,7 @@ class SharedItem(Persistent):
                             if 'deleted' not in self.feed_type:
                                 self.feed_type.append('deleted')
                         else:
-                            self.feed_type = [feed_type, ]
+                            self.feed_type.append(feed_type)
                     else:
                         self.feed_type = [feed_type, ]
         if 'push_deletion_type' in entry:
