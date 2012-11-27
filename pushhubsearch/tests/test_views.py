@@ -5,6 +5,7 @@ from pushhubsearch.models import Root
 from pushhubsearch.models import SharedItems
 from pushhubsearch.models import SharedItem
 from pushhubsearch.views import delete_items
+from pushhubsearch.views import combine_entries
 
 XML_WRAPPER = """\
 <?xml version="1.0" encoding="utf-8" ?>
@@ -184,3 +185,65 @@ class TestDeletion(TestCase):
         self.assertEquals(response.code, 200)
         self.failIf(self.root.shared.get('foo_uid', False))
         self.failIf(self.root.shared.get('bar_uid', False))
+
+
+class TestCombineEntries(TestCase):
+
+    def setUp(self):
+        self.item1 = SharedItem()
+        self.item1.feed_type = ['shared', 'deleted']
+        self.item2 = SharedItem()
+        self.item2.feed_type = ['shared', 'selected']
+        self.item3 = SharedItem()
+        self.item3.feed_type = ['shared', 'selected']
+        self.item4 = SharedItem()
+        self.item4.feed_type = ['shared', 'selected', 'deleted']
+
+        self.container = {
+            'item1': self.item1,
+            'item2': self.item2,
+            'item3': self.item3,
+            'item4': self.item4,
+        }
+
+    def remove_deleted(self):
+        del self.container['item1']
+        del self.container['item4']
+
+    def empty_container(self):
+        self.container = {}
+
+    def tearDown(self):
+        self.item1 = self.item2 = self.item3 = self.item4 = None
+
+    def test_shared_with_deleted_items(self):
+        combined = combine_entries(self.container, 'shared')
+        self.assertEqual(len(combined), 2)
+
+    def test_selected_with_deleted_items(self):
+        combined = combine_entries(self.container, 'selected')
+        self.assertEqual(len(combined), 2)
+
+    def test_deleted(self):
+        combined = combine_entries(self.container, 'deleted')
+        self.assertEqual(len(combined), 2)
+
+    def test_shared_no_deleted_items(self):
+        self.remove_deleted()
+        combined = combine_entries(self.container, 'shared')
+        self.assertEqual(len(combined), 2)
+
+    def test_selected_no_deleted_items(self):
+        self.remove_deleted()
+        combined = combine_entries(self.container, 'selected')
+        self.assertEqual(len(combined), 2)
+
+    def test_no_shared(self):
+        self.empty_container()
+        combined = combine_entries(self.container, 'shared')
+        self.assertEqual(len(combined), 0)
+
+    def test_no_selected(self):
+        self.empty_container()
+        combined = combine_entries(self.container, 'selected')
+        self.assertEqual(len(combined), 0)

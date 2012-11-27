@@ -188,12 +188,15 @@ def not_deleted(feed_name, types):
     return feed_name in types and 'deleted' not in types
 
 
-def combine_entries(context, request, feed_name):
+def combine_entries(container, feed_name):
     """Combines all feeds of a given type (e.g. Shared, Selected)
     """
-    shared = context.shared
-    results = [entry for entry in shared.values()
-               if feed_name in entry.feed_type]
+    if feed_name == 'deleted':
+        results = [entry for entry in container.values()
+                   if feed_name in entry.feed_type]
+    else:
+        results = [entry for entry in container.values()
+                   if not_deleted(feed_name, entry.feed_type)]
     results.sort(key=lambda x: x.Modified, reverse=True)
     return results
 
@@ -225,7 +228,7 @@ def create_feed(entries, title, link, description):
 
 
 def global_shared(context, request):
-    entries = combine_entries(context, request, 'shared')
+    entries = combine_entries(context.shared, 'shared')
     return Response(create_feed(entries,
                        'All Shared Entries',
                        route_url('shared', request),
@@ -234,7 +237,7 @@ def global_shared(context, request):
 
 
 def global_selected(context, request):
-    entries = combine_entries(context, request, 'selected')
+    entries = combine_entries(context.shared, 'selected')
     return Response(create_feed(entries,
                        'All Selected Entries',
                        route_url('selected', request),
@@ -244,7 +247,7 @@ def global_selected(context, request):
 
 
 def global_deleted(context, request):
-    entries = combine_entries(context, request, 'deleted')
+    entries = combine_entries(context.shared, 'deleted')
     return Response(create_feed(entries,
                        'All Deleted Entries',
                        route_url('deleted', request),
