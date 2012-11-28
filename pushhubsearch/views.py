@@ -221,11 +221,11 @@ def create_feed(entries, title, link, description):
             pubdate=entry.Modified,
             unique_id=entry.__name__,
             categories=entry.Subject,
-            category=entry.Category,
-            portal_type=entry.portal_type
+            category={'term': entry.Category, 'label': u'Site Title'},
         )
+        data['push:portal_type'] = entry.portal_type
         if hasattr(entry, 'deletion_type'):
-            data['deletion_type'] = entry.deletion_type
+            data['push:deletion_type'] = entry.deletion_type
         new_feed.add_item(
             entry.Title,
             entry.url,
