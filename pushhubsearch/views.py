@@ -99,11 +99,12 @@ class UpdateItems(object):
         #      the `add` method on the folder not setting them?
         obj.__name__ = uid
         obj.__parent__ = self.shared
-        if (('selected' in entry['feed_link'] or 'shared' in entry['feed_link'])
-                and hasattr(obj, 'deletion_type')):
-            remove_deleted_status(entry['uid'],
-                                  self.shared,
-                                  self.solr)
+        selected_or_shared = (
+            'selected' in entry['feed_link'] or
+            'shared' in entry['feed_link']
+        )
+        if selected_or_shared and hasattr(obj, 'deletion_type'):
+            remove_deleted_status(uid, self.shared, self.solr)
         obj.update_from_entry(entry)
         self.to_index.append(obj)
         self.update_count += 1
