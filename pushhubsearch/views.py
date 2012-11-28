@@ -79,8 +79,9 @@ class UpdateItems(object):
         """Create new items in the feed
         """
         new_item = SharedItem()
-        new_item.update_from_entry(entry)
         uid = entry['uid']
+        logger.info('Creating item %s' % uid)
+        new_item.update_from_entry(entry)
         # XXX: Should name and parent be necessary here? Shouldn't
         #      the `add` method do that for us?
         new_item.__name__ = uid
@@ -92,10 +93,12 @@ class UpdateItems(object):
     def _update_item(self, entry):
         """Update existing items in the db using their UID
         """
-        obj = self.shared[entry['uid']]
+        uid = entry['uid']
+        logger.info('Updating item %s' % uid)
+        obj = self.shared[uid]
         # XXX: these aren't coming from the object. Why is that? Is
         #      the `add` method on the folder not setting them?
-        obj.__name__ = entry['uid']
+        obj.__name__ = uid
         obj.__parent__ = self.shared
         if (('selected' in entry['feed_link'] or 'shared' in entry['feed_link'])
                 and hasattr(obj, 'deletion_type')):
@@ -110,6 +113,7 @@ class UpdateItems(object):
         """Clean up the item dictionaries to contain only items that
         are valid and send them over to Solr for indexing.
         """
+        logger.debug('Updating index for %s objects' % len(self.to_index))
         cleaned = []
         for item in self.to_index:
             item_dict = copy.deepcopy(item.__dict__)
@@ -142,9 +146,8 @@ def update_deletions(context, request):
         raise AttributeError(u'A push.solr_uri is required')
     from mysolr import Solr
     solr = Solr(solr_uri)
-
+    logger.debug('Remove deleted status')
     remove_deleted_status(uid, context.shared, solr)
-
     return HTTPOk(body="Item no longer marked as deleted")
 
 
@@ -170,6 +173,7 @@ def delete_items(context, request):
     for item in shared_content.entries:
         uid = item['id']
         uid = normalize_uid(uid)
+        logger.debug('Deleting %s' % uid)
         if uid not in context.shared:
             missing.append(uid)
             solr.delete_by_key(uid)
@@ -179,8 +183,11 @@ def delete_items(context, request):
         removed += 1
     body_msg = "Removed %s items." % removed
     if missing:
-        msg = " %s items could not be found for deletion: %s"
-        body_msg += msg % (len(missing), ', '.join(missing))
+        msg_str = " %s items could not be found for deletion: %s"
+        args = (len(missing), ', '.join(missing))
+        msg = msg_str % args
+        logger.warn(msg)
+        body_msg += msg
     return HTTPOk(body=body_msg)
 
 
@@ -191,6 +198,7 @@ def not_deleted(feed_name, types):
 def combine_entries(container, feed_name):
     """Combines all feeds of a given type (e.g. Shared, Selected)
     """
+    logger.debug('Combining entries for %s' % feed_name)
     if feed_name == 'deleted':
         results = [entry for entry in container.values()
                    if feed_name in entry.feed_type]

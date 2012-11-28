@@ -5,6 +5,9 @@ from repoze.folder import Folder
 import dateutil.parser
 from dateutil.tz import tzutc
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Root(PersistentMapping):
     __parent__ = __name__ = None
@@ -38,6 +41,7 @@ class SharedItem(Persistent):
     def update_from_entry(self, entry):
         """Update the item based on the feed entry
         """
+        logger.debug('update_from_entry')
         if 'title' in entry:
             self.Title = entry['title']
         if 'push_portal_type' in entry:
@@ -62,11 +66,15 @@ class SharedItem(Persistent):
             if cats:
                 self.Category = cats[0]
         if 'feed_link' in entry:
+            not_del_msg = "feed_type is not 'deleted' adding '%s'"
+            del_sel_msg = "feed_type is 'deleted' and 'selected'"
+            del_other_msg = "feed_type is 'deleted' deletion type '%s'"
             url = entry['feed_link']
             for feed_type in ('shared', 'selected', 'deleted'):
                 if feed_type in url:
                     if self.feed_type and feed_type != 'deleted':
                         if not feed_type in self.feed_type:
+                            logger.debug(not_del_msg % feed_type)
                             self.feed_type.append(feed_type)
                     # If an item is deleted from the selection feed,
                     # we still need to keep the shared string in
@@ -76,16 +84,22 @@ class SharedItem(Persistent):
                     elif self.feed_type and feed_type == 'deleted':
                         deletion_type = entry['push_deletion_type']
                         if deletion_type == 'selected':
+                            logger.debug(del_sel_msg)
                             if 'selected' in self.feed_type:
                                 self.feed_type.remove('selected')
                             if 'deleted' not in self.feed_type:
                                 self.feed_type.append('deleted')
                         else:
+                            logger.debug(del_other_msg % deletion_type)
                             self.feed_type.append(feed_type)
                     else:
+                        logger.debug("init feed_type '%s'" % feed_type)
                         self.feed_type = [feed_type, ]
         if 'push_deletion_type' in entry:
             self.deletion_type = entry['push_deletion_type']
+        # Report what the current state of the item is
+        for k, v in self.__dict__.items():
+            logger.debug('%s: %s' % (k, v))
 
 
 def appmaker(zodb_root):
