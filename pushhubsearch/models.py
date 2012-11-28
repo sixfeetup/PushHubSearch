@@ -32,7 +32,8 @@ class SharedItem(Persistent):
         self.Creator = Creator
         if Modified is None:
             Modified = datetime.utcnow()
-        self.Modified = Modified
+        else:
+            self.Modified = Modified
         self.Description = Description
         self.Subject = Subject
         self.Category = Category
