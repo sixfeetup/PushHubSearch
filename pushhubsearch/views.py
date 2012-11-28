@@ -1,4 +1,3 @@
-from datetime import datetime
 import copy
 import feedparser
 from pyramid.httpexceptions import HTTPOk
