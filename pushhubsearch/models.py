@@ -82,7 +82,7 @@ class SharedItem(Persistent):
         for k, v in self.__dict__.items():
             logger.debug('%s: %s' % (k, v))
 
-    def assign_feeds(self, feed_link='', push_deletion_type=''):
+    def assign_feeds(self, feed_link='', push_deletion_type='', **kwargs):
         not_del_msg = "feed_type is not 'deleted' adding '%s'"
         del_sel_msg = "feed_type is 'deleted' and 'selected'"
         del_other_msg = "feed_type is 'deleted' deletion type '%s'"

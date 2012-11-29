@@ -70,3 +70,15 @@ class TestFeedTypeAssignment(TestCase):
         item.assign_feeds(**entry)
         self.assertEqual(len(item.feed_type), 1)
         self.assertTrue('deleted' in item.feed_type)
+
+    def test_unused_keyword_args(self):
+        item = SharedItem()
+        entry = {
+            'feed_link': 'shared-content.xml',
+            'updated': None,
+            'foo': 'bar'
+        }
+        item.assign_feeds(**entry)
+        self.assertEqual(len(item.feed_type), 1)
+
+
