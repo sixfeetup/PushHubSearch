@@ -18,6 +18,10 @@ class SharedItems(Folder):
     """
     title = "Shared Items"
 
+    def find_by_title(self, title):
+        matches = [v for v in self.values if v.Title == title]
+        return matches
+
 
 class SharedItem(Persistent):
     """An item shared to the CS Portal Pool
