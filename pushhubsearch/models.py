@@ -80,7 +80,7 @@ class SharedItem(Persistent):
             self.deletion_type = entry['push_deletion_type']
         # Report what the current state of the item is
         for k, v in self.__dict__.items():
-            logger.debug('%s: %s' % (k, v))
+            logger.debug('update entry: %s: %s' % (k, v))
 
     def assign_feeds(self, feed_link='', push_deletion_type='', **kwargs):
         not_del_msg = "feed_type is not 'deleted' adding '%s'"
