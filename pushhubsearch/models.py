@@ -71,7 +71,7 @@ class SharedItem(Persistent):
             if cats:
                 self.Category = cats[0]
         if 'feed_link' in entry:
-            self.generate_feeds(**entry)
+            self.assign_feeds(**entry)
         if 'push_deletion_type' in entry:
             self.deletion_type = entry['push_deletion_type']
         # Report what the current state of the item is
