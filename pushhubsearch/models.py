@@ -25,7 +25,7 @@ class SharedItem(Persistent):
 
     def __init__(self, Title='', portal_type='', Creator='', Modified=None,
                  url='', Description='', Subject=[], Category=None,
-                 feed_type=''):
+                 feed_type=None):
         self.Title = Title
         self.portal_type = portal_type
         self.url = url
@@ -37,7 +37,11 @@ class SharedItem(Persistent):
         self.Description = Description
         self.Subject = Subject
         self.Category = Category
-        self.feed_type = feed_type
+        if feed_type is None:
+            self.feed_type = []
+        else:
+            self.feed_type = feed_type
+
 
     def update_from_entry(self, entry):
         """Update the item based on the feed entry
@@ -67,41 +71,48 @@ class SharedItem(Persistent):
             if cats:
                 self.Category = cats[0]
         if 'feed_link' in entry:
-            not_del_msg = "feed_type is not 'deleted' adding '%s'"
-            del_sel_msg = "feed_type is 'deleted' and 'selected'"
-            del_other_msg = "feed_type is 'deleted' deletion type '%s'"
-            url = entry['feed_link']
-            for feed_type in ('shared', 'selected', 'deleted'):
-                if feed_type in url:
-                    if self.feed_type and feed_type != 'deleted':
-                        if not feed_type in self.feed_type:
-                            logger.debug(not_del_msg % feed_type)
-                            self.feed_type.append(feed_type)
-                    # If an item is deleted from the selection feed,
-                    # we still need to keep the shared string in
-                    # the feed_type attribute.
-                    # If the item was unfeatured, then the feed_type
-                    # attribute needs to get set to ['deleted']
-                    elif self.feed_type and feed_type == 'deleted':
-                        deletion_type = entry['push_deletion_type']
-                        if deletion_type == 'selected':
-                            logger.debug(del_sel_msg)
-                            if 'selected' in self.feed_type:
-                                self.feed_type.remove('selected')
-                            if 'deleted' not in self.feed_type:
-                                self.feed_type.append('deleted')
-                        else:
-                            logger.debug(del_other_msg % deletion_type)
-                            self.feed_type.append(feed_type)
-                    else:
-                        logger.debug("init feed_type '%s'" % feed_type)
-                        if feed_type == 'shared':
-                            self.feed_type = [feed_type, ]
+            self.generate_feeds(**entry)
         if 'push_deletion_type' in entry:
             self.deletion_type = entry['push_deletion_type']
         # Report what the current state of the item is
         for k, v in self.__dict__.items():
             logger.debug('%s: %s' % (k, v))
+
+    def assign_feeds(self, feed_link='', push_deletion_type=''):
+        not_del_msg = "feed_type is not 'deleted' adding '%s'"
+        del_sel_msg = "feed_type is 'deleted' and 'selected'"
+        del_other_msg = "feed_type is 'deleted' deletion type '%s'"
+        if 'shared' in feed_link:
+            logger.debug("init feed_type '%s'" % 'shared')
+            if not self.feed_type:
+                self.feed_type = ['shared', ]
+            if 'shared' not in self.feed_type:
+                self.feed_type.append('shared')
+            if 'deleted' in self.feed_type:
+                self.feed_type.remove('deleted')
+        elif 'deleted' in feed_link:
+            if 'shared' not in self.feed_type:
+                logger.debug('tried to delete unshared item')
+                return
+            if push_deletion_type == 'selected':
+                logger.debug(del_sel_msg)
+                if 'selected' in self.feed_type:
+                    self.feed_type.remove('selected')
+                if 'deleted' not in self.feed_type:
+                    self.feed_type.append('deleted')
+            elif push_deletion_type == 'featured':
+                logger.debug('unfeatured item')
+                self.feed_type = ['deleted']
+            else:
+                logger.debug(del_other_msg % push_deletion_type)
+                self.feed_type.append('deleted')
+        elif 'selected' in feed_link:
+            if 'shared' not in self.feed_type:
+                logger.debug('tried to select unshared item')
+                return
+            if 'selected' not in self.feed_type:
+                logger.debug(not_del_msg % 'selected')
+                self.feed_type.append('selected')
 
 
 def appmaker(zodb_root):
