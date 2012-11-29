@@ -31,7 +31,7 @@ class SharedItem(Persistent):
         self.url = url
         self.Creator = Creator
         if Modified is None:
-            Modified = datetime.utcnow()
+            self.Modified = datetime.utcnow()
         else:
             self.Modified = Modified
         self.Description = Description
@@ -95,7 +95,8 @@ class SharedItem(Persistent):
                             self.feed_type.append(feed_type)
                     else:
                         logger.debug("init feed_type '%s'" % feed_type)
-                        self.feed_type = [feed_type, ]
+                        if feed_type == 'shared':
+                            self.feed_type = [feed_type, ]
         if 'push_deletion_type' in entry:
             self.deletion_type = entry['push_deletion_type']
         # Report what the current state of the item is
