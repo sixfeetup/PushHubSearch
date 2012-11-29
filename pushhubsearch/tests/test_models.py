@@ -1,4 +1,5 @@
 from unittest import TestCase
+from mock import Mock
 
 from pushhubsearch.models import SharedItem
 
@@ -82,3 +83,18 @@ class TestFeedTypeAssignment(TestCase):
         self.assertEqual(len(item.feed_type), 1)
 
 
+class TestEntryUpdateCallsAssignment(TestCase):
+
+    def test_update_items_calling_assignment(self):
+        item = SharedItem()
+        item.assign_feeds = Mock()
+        entry = {
+            'title': 'Test',
+            'feed_link': 'shared-content.xml'
+        }
+        item.update_from_entry(entry)
+        self.assertTrue(item.assign_feeds.called)
+        item.assign_feeds.assert_called_with(
+            feed_link='shared-content.xml',
+            title='Test'
+        )
