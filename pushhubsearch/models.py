@@ -29,7 +29,7 @@ class SharedItem(Persistent):
 
     def __init__(self, Title='', portal_type='', Creator='', Modified=None,
                  url='', Description='', Subject=[], Category=None,
-                 feed_type=None):
+                 feed_type=None, tile_urls=[], deleted_tile_urls=[]):
         self.Title = Title
         self.portal_type = portal_type
         self.url = url
@@ -45,10 +45,17 @@ class SharedItem(Persistent):
             self.feed_type = []
         else:
             self.feed_type = feed_type
-
+        self.tile_urls = tile_urls
+        self.deleted_tile_urls = deleted_tile_urls
 
     def update_from_entry(self, entry):
         """Update the item based on the feed entry
+
+        NOTE: If you add any new attributes to the entry, you must
+              make sure that these are compatible with the Solr schema.
+              If they are not, then you need to modify the
+              _update_index method in views to remove the attr.
+              Otherwise, Solr will return a 400 on indexing.
         """
         logger.debug('update_from_entry')
         if 'title' in entry:
@@ -78,6 +85,46 @@ class SharedItem(Persistent):
             self.assign_feeds(**entry)
         if 'push_deletion_type' in entry:
             self.deletion_type = entry['push_deletion_type']
+        if 'push_tile_urls' in entry:
+            if len(self.feed_type) == 1 and 'deleted' in self.feed_type:
+                # If the item was completely removed, reset the tile_urls
+                previous_tile_urls = self.tile_urls
+                self.tile_urls = []
+            else:
+                current_tiles = set(self.tile_urls)
+                push_tile_urls = entry['push_tile_urls'].strip()
+                if push_tile_urls:
+                    parsed_tiles = set([
+                        i.strip()
+                        for i in push_tile_urls.split('|')
+                    ])
+                else:
+                    parsed_tiles = set()
+                # Clean up the deleted_tiles
+                self.deleted_tile_urls = list(
+                    set(self.deleted_tile_urls) - parsed_tiles)
+                # return a union of the passed in and current values
+                self.tile_urls = list(current_tiles | parsed_tiles)
+        if 'push_deleted_tile_urls' in entry:
+            if len(self.feed_type) == 1 and 'deleted' in self.feed_type:
+                # If the item was completely removed, reset the
+                # deleted_tile_urls to the previous set of selected
+                # tiles.
+                self.deleted_tile_urls = previous_tile_urls
+            else:
+                current_tiles = set(self.deleted_tile_urls)
+                push_del_urls = entry['push_deleted_tile_urls'].strip()
+                if push_del_urls:
+                    parsed_tiles = set([
+                        i.strip()
+                        for i in push_del_urls.split('|')
+                    ])
+                else:
+                    parsed_tiles = set()
+                # Clean up tile_urls by removing the item that was deleted
+                self.tile_urls = list(set(self.tile_urls) - parsed_tiles)
+                # return a union of the passed in and current values
+                self.deleted_tile_urls = list(current_tiles | parsed_tiles)
         # Report what the current state of the item is
         for k, v in self.__dict__.items():
             logger.debug('update entry: %s: %s' % (k, v))

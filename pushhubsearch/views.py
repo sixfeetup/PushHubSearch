@@ -112,6 +112,11 @@ class UpdateItems(object):
     def _update_index(self):
         """Clean up the item dictionaries to contain only items that
         are valid and send them over to Solr for indexing.
+
+        NOTE: Solr may error out on index if it receives a field it is
+              not aware of. We should change this code to look up the
+              Solr schema, and remove attributes that it doesn't know,
+              like __name__ and __parent__ below.
         """
         logger.debug('Updating index for %s objects' % len(self.to_index))
         cleaned = []
@@ -224,6 +229,10 @@ def create_feed(entries, title, link, description):
             category={'term': entry.Category, 'label': u'Site Title'},
         )
         data['push:portal_type'] = entry.portal_type
+        # Tile urls are added into one element for now
+        data['push:tile_urls'] = '|'.join(entry.tile_urls).lstrip('|')
+        data['push:deleted_tile_urls'] = '|'.join(
+            entry.deleted_tile_urls).lstrip('|')
         if hasattr(entry, 'deletion_type'):
             data['push:deletion_type'] = entry.deletion_type
         new_feed.add_item(
