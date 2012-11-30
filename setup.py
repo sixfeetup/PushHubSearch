@@ -21,7 +21,7 @@ requires = [
 
 setup(
     name='push-hubsearch',
-    version='0.15',
+    version='0.16',
     description='push-hubsearch',
     long_description=README + '\n\n' + CHANGES,
     classifiers=[
