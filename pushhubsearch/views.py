@@ -120,6 +120,11 @@ class UpdateItems(object):
         """
         logger.debug('Updating index for %s objects' % len(self.to_index))
         cleaned = []
+        ignored_attrs = [
+            '__name__',
+            '__parent__',
+            'deletion_type',
+        ]
         for item in self.to_index:
             item_dict = copy.deepcopy(item.__dict__)
             if 'Modified' in item_dict:
@@ -131,8 +136,10 @@ class UpdateItems(object):
                 # the +00:00 and replace it with a Z
                 item_dict['Modified'] = "%sZ" % mod_date[:-6]
             item_dict['uid'] = item_dict['__name__']
-            del item_dict['__name__']
-            del item_dict['__parent__']
+            # XXX: Need to look up the schema, then modify the dict
+            #      based on that.
+            for attr in ignored_attrs:
+                item_dict.pop(attr, '')
             cleaned.append(item_dict)
         # XXX: Need to handle Solr errors here
         response = self.solr.update(cleaned)
