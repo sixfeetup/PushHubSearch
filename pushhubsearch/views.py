@@ -203,10 +203,6 @@ def delete_items(context, request):
     return HTTPOk(body=body_msg)
 
 
-def not_deleted(feed_name, types):
-    return feed_name in types and 'deleted' not in types
-
-
 def combine_entries(container, feed_name):
     """Combines all feeds of a given type (e.g. Shared, Selected)
     """
@@ -215,8 +211,17 @@ def combine_entries(container, feed_name):
         results = [entry for entry in container.values()
                    if feed_name in entry.feed_type]
     else:
-        results = [entry for entry in container.values()
-                   if not_deleted(feed_name, entry.feed_type)]
+        results = []
+        for entry in container.values():
+            feed_type = entry.feed_type
+            feed_match = feed_name in feed_type
+            feature_del = (
+                'deleted' in feed_type and
+                entry.deletion_type == 'featured'
+            )
+            if not feed_match or (feed_match and feature_del):
+                continue
+            results.append(entry)
     results.sort(key=lambda x: x.Modified, reverse=True)
     return results
 

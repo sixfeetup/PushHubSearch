@@ -192,12 +192,14 @@ class TestCombineEntries(TestCase):
     def setUp(self):
         self.item1 = SharedItem()
         self.item1.feed_type = ['shared', 'deleted']
+        self.item1.deletion_type = 'featured'
         self.item2 = SharedItem()
         self.item2.feed_type = ['shared', 'selected']
         self.item3 = SharedItem()
         self.item3.feed_type = ['shared', 'selected']
         self.item4 = SharedItem()
         self.item4.feed_type = ['shared', 'selected', 'deleted']
+        self.item4.deletion_type = 'featured'
 
         self.container = {
             'item1': self.item1,
@@ -247,3 +249,8 @@ class TestCombineEntries(TestCase):
         self.empty_container()
         combined = combine_entries(self.container, 'selected')
         self.assertEqual(len(combined), 0)
+
+    def test_shared_with_deleted_selection(self):
+        self.item1.deletion_type = 'selected'
+        combined = combine_entries(self.container, 'shared')
+        self.assertEqual(len(combined), 3)
