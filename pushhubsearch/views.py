@@ -239,6 +239,7 @@ def create_feed(entries, title, link, description):
             unique_id=entry.__name__,
             categories=entry.Subject,
             category={'term': entry.Category, 'label': u'Site Title'},
+            author_name=entry.Creator,
         )
         data['push:portal_type'] = entry.portal_type
         # Tile urls are added into one element for now
