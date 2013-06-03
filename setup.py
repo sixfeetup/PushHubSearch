@@ -50,9 +50,9 @@ requires = [
 ]
 
 setup(
-    name='push-hubsearch',
+    name='PushHubSearch',
     version='0.18',
-    description='push-hubsearch',
+    description='PushHubSearch',
     long_description=README + '\n\n' + CHANGES,
     license='LICENSE.txt',
     classifiers=[
