@@ -165,6 +165,9 @@ class UpdateItems(object):
                 # Make sure the date is acceptable to Solr, strip off
                 # the +00:00 and replace it with a Z
                 item_dict['Modified'] = "%sZ" % mod_date[:-6]
+            if 'content' in item_dict:
+                item_dict['content'] = [
+                    item['value'] for item in item_dict['content']]
             item_dict['uid'] = item_dict['__name__']
             # XXX: Need to look up the schema, then modify the dict
             #      based on that.
@@ -276,6 +279,8 @@ def create_feed(entries, title, link, description):
         data['push:tile_urls'] = '|'.join(entry.tile_urls).lstrip('|')
         data['push:deleted_tile_urls'] = '|'.join(
             entry.deleted_tile_urls).lstrip('|')
+        if getattr(entry, 'content', None):
+            data['content'] = entry.content
         if hasattr(entry, 'deletion_type'):
             data['push:deletion_type'] = entry.deletion_type
         new_feed.add_item(

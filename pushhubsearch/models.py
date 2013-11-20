@@ -59,7 +59,8 @@ class SharedItem(Persistent):
 
     def __init__(self, Title='', portal_type='', Creator='', Modified=None,
                  url='', Description='', Subject=[], Category=None,
-                 feed_type=None, tile_urls=[], deleted_tile_urls=[]):
+                 feed_type=None, tile_urls=[], deleted_tile_urls=[],
+                 content=[]):
         self.Title = Title
         self.portal_type = portal_type
         self.url = url
@@ -77,6 +78,7 @@ class SharedItem(Persistent):
             self.feed_type = feed_type
         self.tile_urls = tile_urls
         self.deleted_tile_urls = deleted_tile_urls
+        self.content = content
 
     def update_from_entry(self, entry):
         """Update the item based on the feed entry
@@ -101,6 +103,11 @@ class SharedItem(Persistent):
             self.url = entry['link']
         if 'summary' in entry:
             self.Description = entry['summary']
+        content = entry.get('content')
+        if content:
+            # NOTE content is not a string; it is a list of dicts. See:
+            # http://pythonhosted.org/feedparser/common-atom-elements.html#accessing-common-entry-elements
+            self.content = content
         if 'tags' in entry:
             self.Subject = [
                 i['term'] for i in entry['tags']
