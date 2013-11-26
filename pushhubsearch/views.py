@@ -166,8 +166,10 @@ class UpdateItems(object):
                 # the +00:00 and replace it with a Z
                 item_dict['Modified'] = "%sZ" % mod_date[:-6]
             if 'content' in item_dict:
-                item_dict['content'] = [
-                    item['value'] for item in item_dict['content']]
+                items = [item['value'] for item in item_dict['content']]
+                if items:
+                    # XXX: use first content item, discard the rest
+                    item_dict['content'] = items[0]
             item_dict['uid'] = item_dict['__name__']
             # XXX: Need to look up the schema, then modify the dict
             #      based on that.
