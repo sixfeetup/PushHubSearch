@@ -271,7 +271,7 @@ def create_feed(entries, title, link, description):
     for entry in entries:
         data = dict(
             pubdate=entry.Modified,
-            unique_id=entry.__name__,
+            unique_id='urn:syndication:%s' % entry.__name__,
             categories=entry.Subject,
             category={'term': entry.Category, 'label': u'Site Title'},
             author_name=entry.Creator,
