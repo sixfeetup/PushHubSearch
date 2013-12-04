@@ -51,7 +51,7 @@ requires = [
 
 setup(
     name='PushHubSearch',
-    version='0.20',
+    version='0.21',
     description='PushHubSearch',
     long_description=README + '\n\n' + CHANGES,
     license='LICENSE.txt',
