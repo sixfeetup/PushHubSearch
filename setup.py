@@ -26,8 +26,8 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""
 
+"""
 import os
 
 from setuptools import setup, find_packages
@@ -36,7 +36,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
-requires = [
+install_requires = [
     'pyramid',
     'pyramid_zodbconn',
     'pyramid_tm',
@@ -47,6 +47,12 @@ requires = [
     'repoze.folder',
     'feedparser',
     'python-dateutil',
+    'PushHubCore',
+]
+
+tests_require = [
+    'coverage',
+    'mock',
 ]
 
 setup(
@@ -61,19 +67,18 @@ setup(
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
     ],
-    author='',
-    author_email='',
-    url='',
+    author='Six Feet Up',
+    author_email='info@sixfeetup.com',
+    url='http://www.sixfeetup.com',
     keywords='web pylons pyramid',
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=requires,
-    tests_require=requires,
-    extras_require={'test': ['mock']},
-    test_suite="pushhubsearch",
-    entry_points="""\
-    [paste.app_factory]
-    main = pushhubsearch:main
+    install_requires=install_requires,
+    tests_require=tests_require,
+    test_suite='pushhubsearch.tests',
+    entry_points="""
+        [paste.app_factory]
+        main = pushhubsearch:main
     """,
 )
