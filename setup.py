@@ -37,17 +37,17 @@ README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
 install_requires = [
-    'pyramid',
-    'pyramid_zodbconn',
-    'pyramid_tm',
-    'pyramid_debugtoolbar',
-    'ZODB3',
-    'waitress',
-    'mysolr',
-    'repoze.folder',
     'feedparser',
-    'python-dateutil',
+    'mysolr',
     'PushHubCore',
+    'pyramid',
+    'pyramid_debugtoolbar',
+    'pyramid_tm',
+    'pyramid_zodbconn',
+    'python-dateutil',
+    'repoze.folder',
+    'waitress',
+    'ZODB3',
 ]
 
 tests_require = [
