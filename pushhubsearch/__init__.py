@@ -34,6 +34,7 @@ from .models import appmaker
 from .views import UpdateItems
 from .views import delete_items
 from .views import update_deletions
+from .views import listener
 from .views import global_shared, global_selected, global_deleted
 
 
@@ -48,6 +49,9 @@ def main(global_config, **settings):
     config = Configurator(root_factory=root_factory, settings=settings)
 
     config.add_static_view('static', 'static', cache_max_age=3600)
+
+    config.add_route('listener', '/listener')
+    config.add_view(listener, route_name='listener')
 
     config.add_route('update', '/update')
     config.add_view(UpdateItems, route_name='update')

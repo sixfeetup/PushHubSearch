@@ -47,6 +47,7 @@ requires = [
     'repoze.folder',
     'feedparser',
     'python-dateutil',
+    'requests',
 ]
 
 setup(

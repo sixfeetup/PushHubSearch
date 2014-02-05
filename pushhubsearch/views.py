@@ -34,6 +34,7 @@ from pyramid.httpexceptions import HTTPOk
 from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.response import Response
 from pyramid.url import route_url
+import requests
 from .models import SharedItem
 from .feedgen import Atom1Feed
 from .utils import normalize_uid
@@ -47,6 +48,21 @@ ALLOWED_CONTENT = (
     'application/atom+xml',
     'application/rss+xml',
 )
+
+
+def listener(context, request):
+    hub_url = request.GET.get('hub.callback')
+    urls = request.GET.getall('hub.urls', [])
+
+    for url in urls:
+        requests.post(hub_url, data={
+            'hub.callback': request.route_url('update'),
+            'hub.topic': url,
+            'hub.mode': 'subscribe',
+        })
+
+    return HTTPOk(body="Subscribed to following threads: %s"
+                  % "<br>".join(urls))
 
 
 class UpdateItems(object):
