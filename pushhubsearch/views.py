@@ -52,7 +52,10 @@ ALLOWED_CONTENT = (
 
 def listener(context, request):
     hub_url = request.GET.get('hub.callback')
-    urls = request.GET.getall('hub.urls', [])
+    urls = request.GET.getall('hub.urls')
+
+    if not hub_url:
+        return HTTPBadRequest(body="'hub.callback' was not specified in the request.")
 
     for url in urls:
         requests.post(hub_url, data={

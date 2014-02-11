@@ -31,11 +31,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from unittest import TestCase
 from pyramid import testing
 from mock import patch
+from mock import call
+from webob.multidict import MultiDict
 from pushhubsearch.models import Root
 from pushhubsearch.models import SharedItems
 from pushhubsearch.models import SharedItem
 from pushhubsearch.views import delete_items
 from pushhubsearch.views import combine_entries
+from pushhubsearch.views import listener
 
 XML_WRAPPER = """\
 <?xml version="1.0" encoding="utf-8" ?>
@@ -284,3 +287,55 @@ class TestCombineEntries(TestCase):
         self.item1.deletion_type = 'selected'
         combined = combine_entries(self.container, 'shared')
         self.assertEqual(len(combined), 3)
+
+
+class TestListener(TestCase):
+
+    def setUp(self):
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        testing.tearDown()
+
+    @patch('pushhubsearch.views.requests.post')
+    def test_emtpy_urls(self, mocked_post):
+        request = testing.DummyRequest(
+            body='',
+            GET=MultiDict({'hub.callback': "http://foobar.com"}),
+            content_type='text/plain')
+        response = listener(None, request)
+        self.assertEquals(response.code, 200)
+        self.assertEquals(mocked_post.mock_calls, [])
+
+    def test_no_callback(self):
+        request = testing.DummyRequest(
+            body='',
+            GET=MultiDict((('hub.urls', "http://foo.com"),
+                           ('hub.urls', "http://bar.com"),
+                         )),
+            content_type='text/plain')
+        response = listener(None, request)
+        self.assertEquals(response.code, 400)
+
+    @patch('pushhubsearch.views.requests.post')
+    def test_subscribed(self, mocked_post):
+        request = testing.DummyRequest(
+            body='',
+            route_url=lambda x: 'http://foobar.com',
+            GET=MultiDict((('hub.urls', "http://foo.com"),
+                           ('hub.urls', "http://bar.com"),
+                           ('hub.callback', "http://foobar.com"),
+                         )),
+            content_type='text/plain')
+
+        response = listener(None, request)
+        self.assertEquals(response.code, 200)
+
+        # assert we subscribed to two topics
+        self.assertEquals(mocked_post.mock_calls,
+          [call('http://foobar.com', data={'hub.callback': 'http://foobar.com',
+                                           'hub.topic': 'http://foo.com',
+                                           'hub.mode': 'subscribe'}),
+           call('http://foobar.com', data={'hub.callback': 'http://foobar.com',
+                                           'hub.topic': 'http://bar.com',
+                                           'hub.mode': 'subscribe'})])
