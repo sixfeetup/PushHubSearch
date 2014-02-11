@@ -77,6 +77,8 @@ class UpdateItems(object):
     def __init__(self, context, request):
         self.context = context
         self.request = request
+        self.callback_url = request.GET.get('hub.callback')
+        self.topic_url = request.GET.get('topic.url')
         self.create_count = 0
         self.update_count = 0
         self.messages = []
@@ -97,13 +99,24 @@ class UpdateItems(object):
                 "following: %s"
             ) % ", ".join(ALLOWED_CONTENT)
             return HTTPBadRequest(body=body_msg)
+
         # Create / update
         self._process_items()
+
         # Index in Solr
         self._update_index()
+
         # Return a 200 with details on what happened in the body
         self.messages.append("%s items created." % self.create_count)
         self.messages.append("%s items updated." % self.update_count)
+
+        # Ping Core about the update
+        requests.post(self.callback_url, data={
+            'hub.mode': 'publish',
+            'hub.url': self.topic_url,
+            'publish.source': self.request.route_url('update'),
+        })
+
         return HTTPOk(body=" ".join(self.messages))
 
     def _process_items(self):
