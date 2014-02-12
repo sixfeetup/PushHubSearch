@@ -54,6 +54,8 @@ def listener(context, request):
     hub_url = request.GET.get('hub.callback')
     urls = request.GET.getall('hub.urls')
 
+    logging.info('Listener subscribing to %s for topics %s' % (hub_url, urls))
+
     if not hub_url:
         return HTTPBadRequest(body="'hub.callback' was not specified in the request.")
 
@@ -62,6 +64,8 @@ def listener(context, request):
             'hub.callback': request.route_url('update'),
             'hub.topic': url,
             'hub.mode': 'subscribe',
+            'hub.verify_callbacks': False,
+            'hub.verify': 'sync',
         })
 
     return HTTPOk(body="Subscribed to following threads: %s"
@@ -111,6 +115,7 @@ class UpdateItems(object):
         self.messages.append("%s items updated." % self.update_count)
 
         # Ping Core about the update
+        logger.info('pinging %s about the update' % self.callback_url)
         requests.post(self.callback_url, data={
             'hub.mode': 'publish',
             'hub.url': self.topic_url,
